@@ -1,13 +1,810 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Simple 2D Game</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C Programming Tutorials</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161921;
+    --border: #252a35;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0a0c10;
+    --green: #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: -1px;
+    margin-bottom: 0.3rem;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 2.5rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .q-badge {
+    background: var(--accent3);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .card-header h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Sections within card */
+  .sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+  }
+  .sections.two-col { grid-template-columns: 1fr 1fr; }
+  .section {
+    padding: 1rem 1.2rem;
+    border-right: 1px solid var(--border);
+  }
+  .section:last-child { border-right: none; }
+  .section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .section-title.pseudo { color: var(--accent2); }
+  .section-title.flow { color: var(--green); }
+  .section-title.info { color: #a78bfa; }
+
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+  }
+  pre {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 0.8rem;
+    overflow-x: auto;
+    line-height: 1.6;
+    white-space: pre;
+  }
+  .kw { color: #569cd6; }
+  .fn { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .num { color: #b5cea8; }
+  .cmt { color: #6a9955; }
+  .op { color: #d4d4d4; }
+  .type { color: #4ec9b0; }
+
+  /* Pseudo */
+  .pseudo-list {
+    list-style: none;
+    line-height: 1.9;
+  }
+  .pseudo-list li {
+    font-size: 0.82rem;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pseudo-list li::before { content: '→ '; color: var(--accent2); }
+  .pseudo-list .indent { padding-left: 1rem; }
+  .pseudo-list .indent::before { content: '  ↳ '; color: var(--muted); }
+
+  /* Flowchart SVG */
+  .flowchart svg {
+    width: 100%;
+    max-width: 220px;
+    display: block;
+    margin: 0 auto;
+  }
+  .flow-box {
+    fill: #1e2433;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+  }
+  .flow-box.decision {
+    fill: #1e2433;
+    stroke: var(--accent2);
+  }
+  .flow-box.end-box {
+    fill: #1e2433;
+    stroke: var(--green);
+  }
+  .flow-text { fill: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 9px; }
+  .flow-arrow { stroke: var(--muted); stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+
+  /* Info card for T2 */
+  .info-block {
+    padding: 1rem 1.2rem;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .info-item h4 {
+    font-size: 0.8rem;
+    color: #a78bfa;
+    margin-bottom: 0.3rem;
+  }
+  .info-item p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .syntax-block {
+    background: var(--code-bg);
+    border-left: 3px solid var(--accent3);
+    padding: 0.6rem 0.8rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    margin-top: 0.4rem;
+  }
+
+  @media (max-width: 700px) {
+    .sections { grid-template-columns: 1fr; }
+    .section { border-right: none; border-bottom: 1px solid var(--border); }
+    .sections.two-col { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
 <body>
-  <div id="score">Score: 0</div>
-  <canvas id="cv" width="480" height="320"></canvas>
-  <script src="app.js"></script>
+
+<h1>C Programming</h1>
+<p class="subtitle">Tutorial 2 · 3 · 4 — Reference Sheet</p>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('t2')">Tutorial 2</button>
+  <button class="tab-btn" onclick="showTab('t3')">Tutorial 3</button>
+  <button class="tab-btn" onclick="showTab('t4')">Tutorial 4</button>
+</div>
+
+<!-- ===================== TUTORIAL 2 ===================== -->
+<div id="t2" class="tab-content active">
+
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">T2</span>
+      <h3>if Statement</h3>
+    </div>
+    <div class="sections two-col">
+      <div class="section">
+        <div class="section-title info">Info</div>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6">Executes a block only when the condition is <strong style="color:var(--text)">true</strong>. If false, the block is skipped entirely.</p>
+        <div class="syntax-block"><span class="kw">if</span> (condition) {<br>&nbsp;&nbsp;// body<br>}</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Code</div>
+<pre><span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="type">int</span> <span class="fn">main</span>() {
+  <span class="type">int</span> n = <span class="num">10</span>;
+  <span class="kw">if</span> (n > <span class="num">0</span>)
+    <span class="fn">printf</span>(<span class="str">"Positive\n"</span>);
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">T2</span>
+      <h3>if-else Statement</h3>
+    </div>
+    <div class="sections two-col">
+      <div class="section">
+        <div class="section-title info">Info</div>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6">Provides two paths — <strong style="color:var(--text)">if</strong> block runs when true, <strong style="color:var(--text)">else</strong> block runs when false. Exactly one block always executes.</p>
+        <div class="syntax-block"><span class="kw">if</span> (cond) { ... }<br><span class="kw">else</span> { ... }</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Code</div>
+<pre><span class="type">int</span> n = <span class="num">5</span>;
+<span class="kw">if</span> (n % <span class="num">2</span> == <span class="num">0</span>)
+  <span class="fn">printf</span>(<span class="str">"Even\n"</span>);
+<span class="kw">else</span>
+  <span class="fn">printf</span>(<span class="str">"Odd\n"</span>);</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">T2</span>
+      <h3>Nested if-else</h3>
+    </div>
+    <div class="sections two-col">
+      <div class="section">
+        <div class="section-title info">Info</div>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6">An if-else placed inside another if-else. Used when decisions depend on previous conditions. Can get deep — keep it readable.</p>
+      </div>
+      <div class="section">
+        <div class="section-title">Code</div>
+<pre><span class="type">int</span> a=<span class="num">5</span>, b=<span class="num">10</span>, c=<span class="num">3</span>;
+<span class="kw">if</span> (a>b) {
+  <span class="kw">if</span> (a>c) <span class="fn">printf</span>(<span class="str">"a max\n"</span>);
+  <span class="kw">else</span>    <span class="fn">printf</span>(<span class="str">"c max\n"</span>);
+} <span class="kw">else</span> {
+  <span class="kw">if</span> (b>c) <span class="fn">printf</span>(<span class="str">"b max\n"</span>);
+  <span class="kw">else</span>    <span class="fn">printf</span>(<span class="str">"c max\n"</span>);
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">T2</span>
+      <h3>else-if Ladder</h3>
+    </div>
+    <div class="sections two-col">
+      <div class="section">
+        <div class="section-title info">Info</div>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6">Chain of conditions checked top-to-bottom. First true block executes and rest are skipped. Good for multiple mutually exclusive cases.</p>
+        <div class="syntax-block"><span class="kw">if</span> (c1) {...}<br><span class="kw">else if</span> (c2) {...}<br><span class="kw">else if</span> (c3) {...}<br><span class="kw">else</span> {...}</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Code — Grade</div>
+<pre><span class="type">int</span> m = <span class="num">75</span>;
+<span class="kw">if</span> (m >= <span class="num">90</span>)      <span class="fn">printf</span>(<span class="str">"A\n"</span>);
+<span class="kw">else if</span> (m >= <span class="num">75</span>) <span class="fn">printf</span>(<span class="str">"B\n"</span>);
+<span class="kw">else if</span> (m >= <span class="num">60</span>) <span class="fn">printf</span>(<span class="str">"C\n"</span>);
+<span class="kw">else</span>              <span class="fn">printf</span>(<span class="str">"Fail\n"</span>);</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">T2</span>
+      <h3>switch Statement</h3>
+    </div>
+    <div class="sections two-col">
+      <div class="section">
+        <div class="section-title info">Info</div>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6">Matches an integer/char expression against constant cases. Cleaner than long else-if ladders for discrete values. Needs <code style="color:var(--accent)">break</code> to prevent fall-through.</p>
+        <div class="syntax-block"><span class="kw">switch</span>(expr) {<br>&nbsp;<span class="kw">case</span> v: ...; <span class="kw">break</span>;<br>&nbsp;<span class="kw">default</span>: ...;<br>}</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Code</div>
+<pre><span class="type">int</span> day = <span class="num">3</span>;
+<span class="kw">switch</span>(day) {
+  <span class="kw">case</span> <span class="num">1</span>: <span class="fn">printf</span>(<span class="str">"Mon\n"</span>); <span class="kw">break</span>;
+  <span class="kw">case</span> <span class="num">2</span>: <span class="fn">printf</span>(<span class="str">"Tue\n"</span>); <span class="kw">break</span>;
+  <span class="kw">case</span> <span class="num">3</span>: <span class="fn">printf</span>(<span class="str">"Wed\n"</span>); <span class="kw">break</span>;
+  <span class="kw">default</span>: <span class="fn">printf</span>(<span class="str">"Other\n"</span>);
+}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TUTORIAL 3 ===================== -->
+<div id="t3" class="tab-content">
+
+  <!-- Q1 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">Q1</span>
+      <h3>Print "Computer" 5 times using for loop</h3>
+    </div>
+    <div class="sections">
+      <div class="section">
+        <div class="section-title">C Code</div>
+<pre><span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="type">int</span> <span class="fn">main</span>() {
+  <span class="type">int</span> i;
+  <span class="kw">for</span> (i=<span class="num">1</span>; i<=<span class="num">5</span>; i++)
+    <span class="fn">printf</span>(<span class="str">"Computer\n"</span>);
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      </div>
+      <div class="section">
+        <div class="section-title pseudo">Pseudocode</div>
+        <ul class="pseudo-list">
+          <li>START</li>
+          <li>SET i = 1</li>
+          <li>WHILE i ≤ 5</li>
+          <li class="indent">PRINT "Computer"</li>
+          <li class="indent">i = i + 1</li>
+          <li>END WHILE</li>
+          <li>STOP</li>
+        </ul>
+      </div>
+      <div class="section flowchart">
+        <div class="section-title flow">Flowchart</div>
+        <svg viewBox="0 0 140 300" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#64748b"/></marker></defs>
+          <!-- START -->
+          <ellipse cx="70" cy="20" rx="35" ry="14" class="flow-box end-box"/>
+          <text x="70" y="24" class="flow-text" text-anchor="middle">START</text>
+          <line x1="70" y1="34" x2="70" y2="52" class="flow-arrow"/>
+          <!-- i=1 -->
+          <rect x="30" y="52" width="80" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="68" class="flow-text" text-anchor="middle">i = 1</text>
+          <line x1="70" y1="78" x2="70" y2="96" class="flow-arrow"/>
+          <!-- Decision -->
+          <polygon points="70,96 115,120 70,144 25,120" class="flow-box decision"/>
+          <text x="70" y="118" class="flow-text" text-anchor="middle">i ≤ 5?</text>
+          <text x="74" y="130" class="flow-text" text-anchor="middle">?</text>
+          <line x1="70" y1="144" x2="70" y2="162" class="flow-arrow"/>
+          <!-- Yes label -->
+          <text x="57" y="158" class="flow-text" fill="#22c55e">Yes</text>
+          <!-- Print -->
+          <rect x="20" y="162" width="100" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="178" class="flow-text" text-anchor="middle">PRINT "Computer"</text>
+          <line x1="70" y1="188" x2="70" y2="206" class="flow-arrow"/>
+          <!-- i++ -->
+          <rect x="30" y="206" width="80" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="222" class="flow-text" text-anchor="middle">i = i + 1</text>
+          <!-- loop back -->
+          <polyline points="110,219 130,219 130,120 115,120" class="flow-arrow"/>
+          <!-- No -->
+          <line x1="25" y1="120" x2="10" y2="120" class="flow-arrow"/>
+          <line x1="10" y1="120" x2="10" y2="270" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="10" y1="270" x2="52" y2="270" class="flow-arrow"/>
+          <text x="14" y="116" class="flow-text" fill="#ff6b35">No</text>
+          <!-- END -->
+          <ellipse cx="70" cy="278" rx="35" ry="14" class="flow-box end-box"/>
+          <text x="70" y="282" class="flow-text" text-anchor="middle">STOP</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">Q2</span>
+      <h3>Factorial of a number using loop</h3>
+    </div>
+    <div class="sections">
+      <div class="section">
+        <div class="section-title">C Code</div>
+<pre><span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="type">int</span> <span class="fn">main</span>() {
+  <span class="type">int</span> n, i;
+  <span class="type">long</span> fact = <span class="num">1</span>;
+  <span class="fn">printf</span>(<span class="str">"Enter n: "</span>);
+  <span class="fn">scanf</span>(<span class="str">"%d"</span>, &n);
+  <span class="kw">for</span> (i=<span class="num">1</span>; i<=n; i++)
+    fact *= i;
+  <span class="fn">printf</span>(<span class="str">"%d! = %ld\n"</span>, n, fact);
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      </div>
+      <div class="section">
+        <div class="section-title pseudo">Pseudocode</div>
+        <ul class="pseudo-list">
+          <li>START</li>
+          <li>INPUT n</li>
+          <li>SET fact = 1, i = 1</li>
+          <li>WHILE i ≤ n</li>
+          <li class="indent">fact = fact × i</li>
+          <li class="indent">i = i + 1</li>
+          <li>PRINT fact</li>
+          <li>STOP</li>
+        </ul>
+      </div>
+      <div class="section flowchart">
+        <div class="section-title flow">Flowchart</div>
+        <svg viewBox="0 0 140 320" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#64748b"/></marker></defs>
+          <ellipse cx="70" cy="18" rx="35" ry="13" class="flow-box end-box"/>
+          <text x="70" y="22" class="flow-text" text-anchor="middle">START</text>
+          <line x1="70" y1="31" x2="70" y2="48" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <rect x="20" y="48" width="100" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="64" class="flow-text" text-anchor="middle">INPUT n</text>
+          <line x1="70" y1="74" x2="70" y2="91" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <rect x="15" y="91" width="110" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="107" class="flow-text" text-anchor="middle">fact=1, i=1</text>
+          <line x1="70" y1="117" x2="70" y2="134" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <polygon points="70,134 115,157 70,180 25,157" class="flow-box decision"/>
+          <text x="70" y="161" class="flow-text" text-anchor="middle">i ≤ n?</text>
+          <line x1="70" y1="180" x2="70" y2="197" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <text x="57" y="194" class="flow-text" fill="#22c55e">Yes</text>
+          <rect x="15" y="197" width="110" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="213" class="flow-text" text-anchor="middle">fact = fact × i</text>
+          <line x1="70" y1="223" x2="70" y2="240" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <rect x="30" y="240" width="80" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="256" class="flow-text" text-anchor="middle">i = i + 1</text>
+          <polyline points="110,253 130,253 130,157 115,157" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arr2)"/>
+          <line x1="25" y1="157" x2="10" y2="157" stroke="#64748b" stroke-width="1.5"/>
+          <text x="13" y="153" class="flow-text" fill="#ff6b35">No</text>
+          <line x1="10" y1="157" x2="10" y2="287" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="10" y1="287" x2="35" y2="287" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <rect x="15" y="274" width="110" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="290" class="flow-text" text-anchor="middle">PRINT fact</text>
+          <line x1="70" y1="300" x2="70" y2="314" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <ellipse cx="70" cy="318" rx="35" ry="13" class="flow-box end-box"/>
+          <text x="70" y="322" class="flow-text" text-anchor="middle">STOP</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">Q3</span>
+      <h3>Define loops — types, importance, syntax</h3>
+    </div>
+    <div class="sections two-col">
+      <div class="section">
+        <div class="section-title info">Info + Syntax</div>
+        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem">A <strong style="color:var(--text)">loop</strong> repeats a block of code until a condition fails. It avoids code repetition and handles bulk operations efficiently.</p>
+        <p style="font-size:0.75rem;color:var(--accent);margin-bottom:0.3rem">Types:</p>
+<pre style="font-size:0.72rem"><span class="cmt">// for — known count</span>
+<span class="kw">for</span>(i=<span class="num">0</span>; i&lt;n; i++) { }
+
+<span class="cmt">// while — condition first</span>
+<span class="kw">while</span>(cond) { }
+
+<span class="cmt">// do-while — runs at least once</span>
+<span class="kw">do</span> { } <span class="kw">while</span>(cond);</pre>
+      </div>
+      <div class="section">
+        <div class="section-title pseudo">Pseudocode (for loop)</div>
+        <ul class="pseudo-list">
+          <li>START</li>
+          <li>SET counter = initial</li>
+          <li>CHECK condition</li>
+          <li class="indent">If true: execute body</li>
+          <li class="indent">Update counter</li>
+          <li class="indent">Go back to CHECK</li>
+          <li>If false: exit loop</li>
+          <li>STOP</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">Q4</span>
+      <h3>Difference: switch-case vs if-else</h3>
+    </div>
+    <div class="sections two-col">
+      <div class="section">
+        <div class="section-title info">Comparison</div>
+        <div style="font-size:0.78rem;line-height:1.8">
+          <p style="color:var(--accent);font-weight:700">switch-case</p>
+          <p style="color:var(--muted)">• Works only with integers/chars</p>
+          <p style="color:var(--muted)">• Faster for many discrete values</p>
+          <p style="color:var(--muted)">• Needs break to stop fall-through</p>
+          <br>
+          <p style="color:var(--accent2);font-weight:700">if-else</p>
+          <p style="color:var(--muted)">• Works with any condition/range</p>
+          <p style="color:var(--muted)">• More flexible (>, <, &&, ||)</p>
+          <p style="color:var(--muted)">• No fall-through issues</p>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Code Comparison</div>
+<pre style="font-size:0.72rem"><span class="cmt">// switch-case</span>
+<span class="kw">switch</span>(x) {
+  <span class="kw">case</span> <span class="num">1</span>: <span class="fn">printf</span>(<span class="str">"One"</span>); <span class="kw">break</span>;
+  <span class="kw">case</span> <span class="num">2</span>: <span class="fn">printf</span>(<span class="str">"Two"</span>); <span class="kw">break</span>;
+}
+
+<span class="cmt">// if-else equivalent</span>
+<span class="kw">if</span> (x == <span class="num">1</span>)      <span class="fn">printf</span>(<span class="str">"One"</span>);
+<span class="kw">else if</span> (x == <span class="num">2</span>) <span class="fn">printf</span>(<span class="str">"Two"</span>);</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">Q5</span>
+      <h3>Display first 10 natural numbers using while loop</h3>
+    </div>
+    <div class="sections">
+      <div class="section">
+        <div class="section-title">C Code</div>
+<pre><span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="type">int</span> <span class="fn">main</span>() {
+  <span class="type">int</span> i = <span class="num">1</span>;
+  <span class="kw">while</span> (i <= <span class="num">10</span>) {
+    <span class="fn">printf</span>(<span class="str">"%d "</span>, i);
+    i++;
+  }
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      </div>
+      <div class="section">
+        <div class="section-title pseudo">Pseudocode</div>
+        <ul class="pseudo-list">
+          <li>START</li>
+          <li>SET i = 1</li>
+          <li>WHILE i ≤ 10</li>
+          <li class="indent">PRINT i</li>
+          <li class="indent">i = i + 1</li>
+          <li>END WHILE</li>
+          <li>STOP</li>
+        </ul>
+      </div>
+      <div class="section flowchart">
+        <div class="section-title flow">Flowchart</div>
+        <svg viewBox="0 0 140 290" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="arr3" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#64748b"/></marker></defs>
+          <ellipse cx="70" cy="18" rx="35" ry="13" class="flow-box end-box"/>
+          <text x="70" y="22" class="flow-text" text-anchor="middle">START</text>
+          <line x1="70" y1="31" x2="70" y2="48" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr3)"/>
+          <rect x="30" y="48" width="80" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="64" class="flow-text" text-anchor="middle">i = 1</text>
+          <line x1="70" y1="74" x2="70" y2="91" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr3)"/>
+          <polygon points="70,91 115,114 70,137 25,114" class="flow-box decision"/>
+          <text x="70" y="118" class="flow-text" text-anchor="middle">i ≤ 10?</text>
+          <line x1="70" y1="137" x2="70" y2="154" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr3)"/>
+          <text x="57" y="151" class="flow-text" fill="#22c55e">Yes</text>
+          <rect x="20" y="154" width="100" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="170" class="flow-text" text-anchor="middle">PRINT i</text>
+          <line x1="70" y1="180" x2="70" y2="197" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr3)"/>
+          <rect x="30" y="197" width="80" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="213" class="flow-text" text-anchor="middle">i = i + 1</text>
+          <polyline points="110,210 130,210 130,114 115,114" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arr3)"/>
+          <line x1="25" y1="114" x2="10" y2="114" stroke="#64748b" stroke-width="1.5"/>
+          <text x="13" y="110" class="flow-text" fill="#ff6b35">No</text>
+          <line x1="10" y1="114" x2="10" y2="258" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="10" y1="258" x2="35" y2="258" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr3)"/>
+          <ellipse cx="70" cy="265" rx="35" ry="13" class="flow-box end-box"/>
+          <text x="70" y="269" class="flow-text" text-anchor="middle">STOP</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== TUTORIAL 4 ===================== -->
+<div id="t4" class="tab-content">
+
+  <!-- T4 Q1 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">T4 Q1</span>
+      <h3>Function: Area of Circle → Volume of Cylinder (πr²h)</h3>
+    </div>
+    <div class="sections">
+      <div class="section">
+        <div class="section-title">C Code</div>
+<pre><span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="kw">#define</span> PI <span class="num">3.14159</span>
+
+<span class="type">float</span> <span class="fn">circleArea</span>(<span class="type">float</span> r) {
+  <span class="kw">return</span> PI * r * r;
+}
+
+<span class="type">float</span> <span class="fn">cylinderVol</span>(<span class="type">float</span> r, <span class="type">float</span> h) {
+  <span class="kw">return</span> <span class="fn">circleArea</span>(r) * h;
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+  <span class="type">float</span> r, h;
+  <span class="fn">printf</span>(<span class="str">"Enter r and h: "</span>);
+  <span class="fn">scanf</span>(<span class="str">"%f %f"</span>, &r, &h);
+  <span class="fn">printf</span>(<span class="str">"Area   = %.2f\n"</span>, <span class="fn">circleArea</span>(r));
+  <span class="fn">printf</span>(<span class="str">"Volume = %.2f\n"</span>, <span class="fn">cylinderVol</span>(r, h));
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      </div>
+      <div class="section">
+        <div class="section-title pseudo">Pseudocode</div>
+        <ul class="pseudo-list">
+          <li>START</li>
+          <li>INPUT r, h</li>
+          <li>FUNCTION circleArea(r)</li>
+          <li class="indent">RETURN π × r²</li>
+          <li>FUNCTION cylinderVol(r, h)</li>
+          <li class="indent">RETURN circleArea(r) × h</li>
+          <li>CALL circleArea(r) → PRINT</li>
+          <li>CALL cylinderVol(r,h) → PRINT</li>
+          <li>STOP</li>
+        </ul>
+      </div>
+      <div class="section flowchart">
+        <div class="section-title flow">Flowchart</div>
+        <svg viewBox="0 0 140 310" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="arr4" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#64748b"/></marker></defs>
+          <ellipse cx="70" cy="18" rx="35" ry="13" class="flow-box end-box"/>
+          <text x="70" y="22" class="flow-text" text-anchor="middle">START</text>
+          <line x1="70" y1="31" x2="70" y2="48" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr4)"/>
+          <rect x="15" y="48" width="110" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="64" class="flow-text" text-anchor="middle">INPUT r, h</text>
+          <line x1="70" y1="74" x2="70" y2="91" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr4)"/>
+          <rect x="5" y="91" width="130" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="107" class="flow-text" text-anchor="middle">area = π × r²</text>
+          <line x1="70" y1="117" x2="70" y2="134" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr4)"/>
+          <rect x="5" y="134" width="130" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="150" class="flow-text" text-anchor="middle">vol = area × h</text>
+          <line x1="70" y1="160" x2="70" y2="177" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr4)"/>
+          <rect x="5" y="177" width="130" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="193" class="flow-text" text-anchor="middle">PRINT area</text>
+          <line x1="70" y1="203" x2="70" y2="220" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr4)"/>
+          <rect x="5" y="220" width="130" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="236" class="flow-text" text-anchor="middle">PRINT vol</text>
+          <line x1="70" y1="246" x2="70" y2="263" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr4)"/>
+          <ellipse cx="70" cy="275" rx="35" ry="13" class="flow-box end-box"/>
+          <text x="70" y="279" class="flow-text" text-anchor="middle">STOP</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- T4 Q2 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="q-badge">T4 Q2</span>
+      <h3>Function: Print all alphabets between 2 given alphabets</h3>
+    </div>
+    <div class="sections">
+      <div class="section">
+        <div class="section-title">C Code</div>
+<pre><span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="type">void</span> <span class="fn">printBetween</span>(<span class="type">char</span> a, <span class="type">char</span> b) {
+  <span class="type">char</span> c;
+  <span class="kw">if</span> (a > b) { <span class="cmt">// swap if needed</span>
+    c=a; a=b; b=c;
+  }
+  <span class="kw">for</span> (c=a; c<=b; c++)
+    <span class="fn">printf</span>(<span class="str">"%c "</span>, c);
+  <span class="fn">printf</span>(<span class="str">"\n"</span>);
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+  <span class="type">char</span> x, y;
+  <span class="fn">printf</span>(<span class="str">"Enter 2 alphabets: "</span>);
+  <span class="fn">scanf</span>(<span class="str">" %c %c"</span>, &x, &y);
+  <span class="fn">printBetween</span>(x, y);
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      </div>
+      <div class="section">
+        <div class="section-title pseudo">Pseudocode</div>
+        <ul class="pseudo-list">
+          <li>START</li>
+          <li>INPUT a, b</li>
+          <li>IF a > b: SWAP a, b</li>
+          <li>FUNCTION printBetween(a, b)</li>
+          <li class="indent">SET c = a</li>
+          <li class="indent">WHILE c ≤ b</li>
+          <li class="indent">PRINT c</li>
+          <li class="indent">c = next char</li>
+          <li>CALL printBetween(a, b)</li>
+          <li>STOP</li>
+        </ul>
+      </div>
+      <div class="section flowchart">
+        <div class="section-title flow">Flowchart</div>
+        <svg viewBox="0 0 140 320" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="arr5" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#64748b"/></marker></defs>
+          <ellipse cx="70" cy="18" rx="35" ry="13" class="flow-box end-box"/>
+          <text x="70" y="22" class="flow-text" text-anchor="middle">START</text>
+          <line x1="70" y1="31" x2="70" y2="48" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr5)"/>
+          <rect x="15" y="48" width="110" height="26" rx="3" class="flow-box"/>
+          <text x="70" y="64" class="flow-text" text-anchor="middle">INPUT a, b</text>
+          <line x1="70" y1="74" x2="70" y2="91" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr5)"/>
+          <polygon points="70,91 115,112 70,133 25,112" class="flow-box decision"/>
+          <text x="70" y="116" class="flow-text" text-anchor="middle">a &gt; b?</text>
+          <!-- Yes: swap -->
+          <line x1="115" y1="112" x2="130" y2="112" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="130" y1="112" x2="130" y2="145" stroke="#64748b" stroke-width="1.5"/>
+          <rect x="95" y="145" width="70" height="20" rx="3" class="flow-box"/>
+          <text x="130" y="158" class="flow-text" text-anchor="middle">SWAP</text>
+          <line x1="130" y1="165" x2="130" y2="180" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="130" y1="180" x2="70" y2="180" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr5)"/>
+          <text x="120" y="108" class="flow-text" fill="#22c55e">Y</text>
+          <!-- No -->
+          <line x1="70" y1="133" x2="70" y2="180" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr5)"/>
+          <text x="74" y="160" class="flow-text" fill="#ff6b35">N</text>
+          <!-- c = a -->
+          <rect x="20" y="180" width="100" height="22" rx="3" class="flow-box"/>
+          <text x="70" y="194" class="flow-text" text-anchor="middle">c = a</text>
+          <line x1="70" y1="202" x2="70" y2="218" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr5)"/>
+          <polygon points="70,218 115,238 70,258 25,238" class="flow-box decision"/>
+          <text x="70" y="242" class="flow-text" text-anchor="middle">c ≤ b?</text>
+          <line x1="70" y1="258" x2="70" y2="273" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr5)"/>
+          <text x="57" y="270" class="flow-text" fill="#22c55e">Yes</text>
+          <rect x="20" y="273" width="100" height="22" rx="3" class="flow-box"/>
+          <text x="70" y="287" class="flow-text" text-anchor="middle">PRINT c; c++</text>
+          <polyline points="120,284 135,284 135,238 115,238" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arr5)"/>
+          <line x1="25" y1="238" x2="8" y2="238" stroke="#64748b" stroke-width="1.5"/>
+          <text x="10" y="234" class="flow-text" fill="#ff6b35">No</text>
+          <line x1="8" y1="238" x2="8" y2="308" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="8" y1="308" x2="35" y2="308" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr5)"/>
+          <ellipse cx="70" cy="312" rx="35" ry="12" class="flow-box end-box"/>
+          <text x="70" y="316" class="flow-text" text-anchor="middle">STOP</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
 </body>
 </html>
